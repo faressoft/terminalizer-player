@@ -1,0 +1,443 @@
+/**
+ * Terminalizer Web Plugin
+ * https://terminalizer.com
+ * 
+ * @author Mohammad Fares <faressoft.com@gmail.com>
+ */
+
+.terminalizer-player,
+.terminalizer {
+  display: inline-block;
+}
+
+.terminalizer .xterm .xterm-viewport {
+  overflow-y: hidden!important;
+}
+
+.terminalizer-frame {
+  position: relative;
+}
+
+/*//// [ Reset ] ////*/
+
+.terminalizer div {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-weight: inherit;
+  font-style: inherit;
+  font-size: 100%;
+  font-family: inherit;
+  vertical-align: baseline;
+}
+
+/*//// [ Window ] ////*/
+
+.terminalizer-frame.terminalizer-window {
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  border-radius: 6px;
+  border: 1px solid #B3B3B3;
+  box-shadow: 0px 0px 18px #B3B3B3;
+  margin: 18px;
+  overflow: hidden;
+}
+
+.terminalizer-frame.terminalizer-window .terminalizer-titlebar {
+  -moz-border-top-left-radius: 6px;
+  -moz-border-top-right-radius: 6px;
+  -webkit-border-top-left-radius: 6px;
+  -webkit-border-top-right-radius: 6px;
+  background: #E8E8E8;
+  border-bottom: 1px solid #B1AEB1;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  border-top: 1px solid #F3F1F3;
+  color: #3B4247;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  height: 22px;
+  line-height: 22px;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
+
+.terminalizer-frame.terminalizer-window .terminalizer-titlebar .buttons {
+  left: 8px;
+  line-height: 0px;
+  position: absolute;
+  top: 3.5px;
+}
+
+.terminalizer-frame.terminalizer-window .terminalizer-titlebar .close {
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  background: #FF5C5C;
+  border-radius: 50%;
+  border: 1px solid #E33E41;
+  display: inline-block;
+  height: 12px;
+  width: 12px;
+}
+
+.terminalizer-frame.terminalizer-window .terminalizer-titlebar .minimize {
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  background: #FFBD4C;
+  border-radius: 50%;
+  border: 1px solid #E09E3E;
+  display: inline-block;
+  height: 12px;
+  margin-left: 4px;
+  width: 12px;
+}
+
+.terminalizer-frame.terminalizer-window .terminalizer-titlebar .maximize {
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  background: #00CA56;
+  border-radius: 50%;
+  border: 1px solid #14AE46;
+  display: inline-block;
+  height: 12px;
+  margin-left: 4px;
+  width: 12px;
+}
+
+.terminalizer-frame.terminalizer-window .terminalizer-body {
+  background-color: #1D1D1D;
+  padding: 10px;
+}
+
+/*//// [ Floating ] ////*/
+
+.terminalizer-frame.terminalizer-floating {
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  background-color: #1D1D1D;
+  border-radius: 6px;
+  box-shadow: 0px 0px 18px #B3B3B3;
+  margin: 18px;
+  overflow: hidden;
+}
+
+.terminalizer-frame.terminalizer-floating .terminalizer-titlebar {
+  color: white;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  height: 34px;
+  line-height: 34px;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
+
+.terminalizer-frame.terminalizer-floating .terminalizer-titlebar .buttons {
+  left: 13px;
+  line-height: 0px;
+  position: absolute;
+  top: 9px;
+}
+
+.terminalizer-frame.terminalizer-floating .terminalizer-titlebar .close {
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  background: #FF5C5C;
+  border-radius: 50%;
+  display: inline-block;
+  height: 15px;
+  width: 15px;
+}
+
+.terminalizer-frame.terminalizer-floating .terminalizer-titlebar .minimize {
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  background: #FFBD4C;
+  border-radius: 50%;
+  display: inline-block;
+  height: 15px;
+  line-height: 10px;
+  margin-left: 4px;
+  width: 15px;
+}
+
+.terminalizer-frame.terminalizer-floating .terminalizer-titlebar .maximize {
+  -moz-border-radius: 50%;
+  -webkit-border-radius: 50%;
+  background: #00CA56;
+  border-radius: 50%;
+  display: inline-block;
+  height: 15px;
+  line-height: 10px;
+  margin-left: 4px;
+  width: 15px;
+}
+
+.terminalizer-frame.terminalizer-floating .terminalizer-body {
+  padding: 20px;
+}
+
+/*//// [ Solid ] ////*/
+
+.terminalizer-frame.terminalizer-solid {
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  background-color: #1D1D1D;
+  border-radius: 6px;
+  box-shadow: 0px 0px 18px #B3B3B3;
+  margin: 18px;
+  overflow: hidden;
+}
+
+.terminalizer-frame.terminalizer-solid .terminalizer-titlebar {
+  color: white;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  position: relative;
+  text-align: center;
+  width: 100%;
+}
+
+.terminalizer-frame.terminalizer-solid .terminalizer-titlebar .title {
+  margin: 15px 15px 15px;
+}
+
+.terminalizer-frame.terminalizer-solid .terminalizer-titlebar .title:empty {
+  display: none;
+}
+
+.terminalizer-frame.terminalizer-solid .terminalizer-titlebar .buttons {
+  display: none;
+}
+
+.terminalizer-frame.terminalizer-solid .terminalizer-body {
+  padding: 20px;
+}
+
+/*//// [ Player ] ////*/
+
+.terminalizer-player {
+  position: relative;
+  font-size: 0;
+}
+
+.terminalizer-player .controller {
+  background: #45484d;
+  bottom: 0px;
+  display: none;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  height: 30px;
+  position: absolute;
+  width: 100%;
+  z-index: 20;
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#45484d', endColorstr='#000000',GradientType=0 );
+  background: -moz-linear-gradient(top, #45484d 0%, #000000 100%);
+  background: -webkit-linear-gradient(top, #45484d 0%,#000000 100%);
+  background: linear-gradient(to bottom, #45484d 0%,#000000 100%);
+  transition: height ease 200ms;
+  -webkit-transition: height ease 200ms;
+  -moz-transition: height ease 200ms;
+  -o-transition: height ease 200ms;
+}
+
+.terminalizer-player.controls .controller {
+  display: block;
+}
+
+.terminalizer-player.playing .controller {
+  height: 0px;
+  overflow: hidden;
+}
+
+.terminalizer-player.playing:hover .controller {
+  height: 30px;
+  overflow: hidden;
+}
+
+.terminalizer-player.loading .controller {
+  display: none;
+}
+
+.terminalizer-player .play,
+.terminalizer-player .pause {
+  fill: #CACACA;
+  float: left;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  width: 40px;
+}
+
+.terminalizer-player .play .icon,
+.terminalizer-player .pause .icon {
+  border-color: transparent transparent transparent #CACACA;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  height: 15px;
+}
+
+.terminalizer-player .pause .icon {
+  border-style: double;
+  border-width: 0px 0px 0px 12px;
+  margin-top: 7px;
+}
+
+.terminalizer-player .play .icon {
+  border-style: solid;
+  border-width: 8px 0px 8px 13px;
+  margin-top: 6px;
+}
+
+.terminalizer-player .pause {
+  display: none;
+}
+
+.terminalizer-player.playing .play {
+  display: none;
+}
+
+.terminalizer-player.playing .pause {
+  display: inline-block;
+}
+
+.terminalizer-player .timer {
+  color: #CACACA;
+  float: right;
+  line-height: 30px;
+  padding: 0 10px
+}
+
+.terminalizer-player .progressbar-wrapper {
+  height: 30px;
+  line-height: 28px;
+  overflow: hidden;
+}
+
+.terminalizer-player .progressbar {
+  background-color: #424242;
+  display: inline-block;
+  height: 7px;
+  overflow: hidden;
+  width: 100%;
+  border-radius: 10px;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+}
+
+.terminalizer-player.started .progressbar {
+  cursor: pointer;
+}
+
+.terminalizer-player .progress {
+  background-color: #CACACA;
+  height: 7px;
+  position: relative;
+  width: 0%;
+}
+
+.terminalizer-player .cover {
+  cursor: pointer;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+}
+
+.terminalizer-player .start svg {
+  cursor: pointer;
+  fill: #EAEAEA;
+  height: 130px;
+  left: 50%;
+  margin-left: -65px;
+  margin-top: -65px;
+  position: absolute;
+  top: 50%;
+  width: 130px;
+  z-index: 20;
+  filter: drop-shadow(10px 10px 15px rgba(0, 0, 0, 0.4));  
+  -webkit-filter: drop-shadow(10px 10px 15px rgba(0, 0, 0, 0.4));      
+}
+
+.terminalizer-player.small .start svg {
+  height: 60px;
+  margin-left: -30px;
+  margin-top: -30px;
+  width: 60px;
+}
+
+.terminalizer-player.framed .start svg {
+  transform: translate(0px, 8px);
+  -webkit-transform: translate(0px, 8px);
+  -moz-transform: translate(0px, 8px);
+  -o-transform: translate(0px, 8px);
+  -ms-transform: translate(0px, 8px);
+}
+
+.terminalizer-player .cover:hover + .start svg,
+.terminalizer-player .start:hover svg {
+  fill: white;
+}
+
+.terminalizer-player.started .cover,
+.terminalizer-player.loading .cover,
+.terminalizer-player.started .start,
+.terminalizer-player.loading .start {
+  display: none;
+}
+
+.terminalizer-player .loading {
+  display: none;
+  height: 64px;
+  left: 50%;
+  margin-left: -32px;
+  margin-top: -32px;
+  position: absolute;
+  top: 50%;
+  width: 64px;
+  z-index: 999;
+}
+
+.terminalizer-player.loading .loading {
+  display: inline-block;
+}
+
+.terminalizer-player .loading div {
+  animation: loading 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-radius: 50%;
+  border: 6px solid white;
+  box-sizing: border-box;
+  display: block;
+  height: 51px;
+  margin: 6px;
+  position: absolute;
+  width: 51px;
+}
+
+.terminalizer-player .loading div {
+  border-color: white transparent transparent transparent;
+}
+
+.terminalizer-player .loading div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+
+.terminalizer-player .loading div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.terminalizer-player .loading div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+
+@keyframes loading {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

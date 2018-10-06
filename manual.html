@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Player</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="node_modules/xterm/dist/xterm.css">
+  <link rel="stylesheet" type="text/css" href="dist/css/terminalizer.css">
+</head>
+<body style="text-align: center; margin: 30px">
+
+  <div id="terminal"></div>
+
+  <script src="node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="node_modules/xterm/dist/xterm.js"></script>
+  <script src="dist/js/terminalizer.js" type="text/javascript"></script>
+
+  <script>
+    
+    // Initialize the terminalizer plugin
+    $('#terminal').terminalizer({
+      recordingFile: 'data.json',
+      autoplay: true,
+      controls: false
+    });
+
+    $('#terminal').on('playingStarted', function() {
+
+      var terminalizer = $('#terminal').data('terminalizer');
+      var framesCount = terminalizer.getFramesCount();
+      var framesCounter = 0;
+
+      terminalizer.pause();
+
+      setInterval(function() {
+
+        if (framesCounter == framesCount) {
+          return;
+        }
+
+        terminalizer._applySnapshot(terminalizer._snapshots[framesCounter]);
+
+        framesCounter++;
+        
+      }, 10);
+
+    });
+
+  </script>
+
+</body>
+</html>

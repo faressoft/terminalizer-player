@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Player</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="node_modules/xterm/dist/xterm.css">
+  <link rel="stylesheet" type="text/css" href="dist/css/terminalizer.css">
+</head>
+<body style="text-align: center; margin: 30px">
+
+  <div id="terminal"></div>
+
+  <script src="node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="node_modules/xterm/dist/xterm.js"></script>
+  <script src="dist/js/terminalizer.js" type="text/javascript"></script>
+
+  <script>
+
+    // Initialize the terminalizer plugin
+    $('#terminal').terminalizer({
+      recordingFile: 'data.json'
+    });
+
+  </script>
+
+</body>
+</html>

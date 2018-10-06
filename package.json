@@ -1,0 +1,58 @@
+{
+  "name": "terminalizer-player",
+  "version": "0.1.0",
+  "description": "A web player for Terminalizer's recordings",
+  "main": "dist/js/terminalizer.js",
+  "author": "Mohammad Fares <faressoft.com@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/faressoft/terminalizer-player.git"
+  },
+  "scripts": {
+    "dev": "NODE_ENV=development webpack --colors --watch",
+    "build": "NODE_ENV=production webpack --optimize-minimize --progress --colors",
+    "prepublish": "npm run build"
+  },
+  "keywords": [
+    "terminalizer",
+    "player",
+    "terminal",
+    "record",
+    "capture",
+    "tty",
+    "shot",
+    "bash",
+    "powershell",
+    "gif",
+    "animated",
+    "generate",
+    "theme",
+    "colors",
+    "font",
+    "repeat",
+    "command-line",
+    "shell",
+    "zsh",
+    "bash-profile",
+    "render",
+    "pty"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/core": "^7.0.1",
+    "@babel/preset-env": "^7.0.0",
+    "babel-loader": "^8.0.2",
+    "clean-webpack-plugin": "^0.1.19",
+    "jquery": "^3.3.1",
+    "mini-css-extract-plugin": "^0.4.3",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "uglifyjs-webpack-plugin": "^2.0.1",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2",
+    "xterm": "3.5.1",
+    "autoprefixer": "^9.1.5",
+    "css-loader": "^1.0.0",
+    "postcss-loader": "^3.0.0"
+  }
+}
