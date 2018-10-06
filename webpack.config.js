@@ -57,9 +57,9 @@ var config = {
      root: '$'
    },
    xterm: {
-     commonjs: 'xterm',
-     commonjs2: 'xterm',
-     amd: 'xterm',
+     commonjs: ['xterm', 'Terminal'],
+     commonjs2: ['xterm', 'Terminal'],
+     amd: ['xterm', 'Terminal'],
      root: 'Terminal'
    }
  },

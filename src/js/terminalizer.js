@@ -1,5 +1,5 @@
 // Third-party Scripts
-import Terminal from 'xterm';
+import * as xterm from 'xterm';
 
 /**
  * Terminalizer Web Player
