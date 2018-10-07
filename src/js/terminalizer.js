@@ -642,7 +642,7 @@ Terminalizer.prototype._addWatermark = function(watermarkConfig) {
   $(watermarkImg).attr('src', watermarkConfig.imagePath);
   $(watermarkImg).css(watermarkConfig.style);
 
-  Terminalizer.prototype.find('.terminalizer-frame').prepend(watermarkImg);
+  this.$element.find('.terminalizer-frame').prepend(watermarkImg);
 
   return new Promise(function(resolve, reject) {
 
