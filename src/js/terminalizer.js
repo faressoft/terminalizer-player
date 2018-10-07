@@ -136,9 +136,9 @@ export function Terminalizer(element, options) {
     '<div class="terminalizer-frame">' +
     '<div class="terminalizer-titlebar">' +
     '<div class="buttons">' + 
-    '<div class="close"></div>' + 
-    '<div class="minimize"></div>' +
-    '<div class="maximize"></div>' +
+    '<div class="close-button"></div>' + 
+    '<div class="minimize-button"></div>' +
+    '<div class="maximize-button"></div>' +
     '</div><div class="title"></div>' + 
     '</div>' +
     '<div class="terminalizer-body"></div>' +

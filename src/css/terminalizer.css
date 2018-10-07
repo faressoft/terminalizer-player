@@ -71,7 +71,7 @@
   top: 3.5px;
 }
 
-.terminalizer-frame.terminalizer-window .terminalizer-titlebar .close {
+.terminalizer-frame.terminalizer-window .terminalizer-titlebar .close-button {
   -moz-border-radius: 50%;
   -webkit-border-radius: 50%;
   background: #FF5C5C;
@@ -82,7 +82,7 @@
   width: 12px;
 }
 
-.terminalizer-frame.terminalizer-window .terminalizer-titlebar .minimize {
+.terminalizer-frame.terminalizer-window .terminalizer-titlebar .minimize-button {
   -moz-border-radius: 50%;
   -webkit-border-radius: 50%;
   background: #FFBD4C;
@@ -94,7 +94,7 @@
   width: 12px;
 }
 
-.terminalizer-frame.terminalizer-window .terminalizer-titlebar .maximize {
+.terminalizer-frame.terminalizer-window .terminalizer-titlebar .maximize-button {
   -moz-border-radius: 50%;
   -webkit-border-radius: 50%;
   background: #00CA56;
@@ -141,7 +141,7 @@
   top: 9px;
 }
 
-.terminalizer-frame.terminalizer-floating .terminalizer-titlebar .close {
+.terminalizer-frame.terminalizer-floating .terminalizer-titlebar .close-button {
   -moz-border-radius: 50%;
   -webkit-border-radius: 50%;
   background: #FF5C5C;
@@ -151,7 +151,7 @@
   width: 15px;
 }
 
-.terminalizer-frame.terminalizer-floating .terminalizer-titlebar .minimize {
+.terminalizer-frame.terminalizer-floating .terminalizer-titlebar .minimize-button {
   -moz-border-radius: 50%;
   -webkit-border-radius: 50%;
   background: #FFBD4C;
@@ -163,7 +163,7 @@
   width: 15px;
 }
 
-.terminalizer-frame.terminalizer-floating .terminalizer-titlebar .maximize {
+.terminalizer-frame.terminalizer-floating .terminalizer-titlebar .maximize-button {
   -moz-border-radius: 50%;
   -webkit-border-radius: 50%;
   background: #00CA56;
