@@ -246,7 +246,7 @@ Terminalizer.prototype._init = function() {
     $element.html($(self._playerTemplate));
 
     // Insert the terminal template
-    $element.find('.terminalizer').html(self._terminalTemplate);
+    $element.find('.terminalizer').replaceWith(self._terminalTemplate);
 
     if (self._options.frameBox.type) {
       $element.find('.terminalizer-frame').addClass('terminalizer-' + self._options.frameBox.type);
