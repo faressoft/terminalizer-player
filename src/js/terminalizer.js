@@ -38,7 +38,18 @@ export function Terminalizer(element, options) {
 
   /**
    * Terminal buffer snapshots (cached frames)
-   * in the format [{lines, cursorX, cursorY, cursorHidden, startTime, endTime, delay}, ..]
+   * in the format [
+   *   {
+   *     lines,
+   *     cursorX,
+   *     cursorY,
+   *     cursorHidden,
+   *     startTime,
+   *     endTime,
+   *     duration,
+   *     delay
+   *   }, 
+   * ..]
    * @type {Array}
    */
   self._snapshots = [];
@@ -492,7 +503,7 @@ Terminalizer.prototype._calculateTotalDuration = function() {
 
 /**
  * Play the frames ang take snapshots for the terminal buffer
- * for each frame and calculate `startTime`, `endTime`, and `delay`
+ * for each frame and calculate `startTime`, `endTime`, `duration` and `delay`
  *
  * @return {Promise}
  */
@@ -500,9 +511,11 @@ Terminalizer.prototype._generateSnapshots = function() {
 
   var self = this;
   var tasks = [];
-  var currentDuration = 0;
+  var currentTime = 0;
   var chunkSize = 200;
   var chunkDelay = 2;
+  var framesCount = self.getFramesCount();
+  var frames = self._frames;
 
   // A workaround for sync rendering with xterm
   self._syncSetTimeout();
@@ -511,7 +524,7 @@ Terminalizer.prototype._generateSnapshots = function() {
   self._terminal.reset();
 
   // Foreach frame
-  self._frames.forEach(function(frame, index) {
+  frames.forEach(function(frame, index) {
 
     var delay = 0;
 
@@ -523,6 +536,11 @@ Terminalizer.prototype._generateSnapshots = function() {
 
       setTimeout(function() {
 
+        // Set the duration (the delay of the next frame)
+        // The % is used to take the delay of the first frame
+        // as the duration of the last frame
+        var duration = frames[(index + 1) % framesCount].delay;
+
         // Render the frame
         self._terminal.write(frame.content);
 
@@ -532,12 +550,13 @@ Terminalizer.prototype._generateSnapshots = function() {
           cursorX: self._terminal._core.buffer.x,
           cursorY: self._terminal._core.buffer.y,
           cursorHidden: self._terminal._core.cursorHidden,
-          startTime: currentDuration,
-          endTime: currentDuration + frame.delay,
+          startTime: currentTime,
+          endTime: currentTime + duration,
+          duration: duration,
           delay: frame.delay
         });
 
-        currentDuration = currentDuration + frame.delay;
+        currentTime = currentTime + duration;
         
         callback();
 
