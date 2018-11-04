@@ -866,12 +866,16 @@ Terminalizer.prototype._updatePlayer = function() {
  */
 Terminalizer.prototype._emit = function(eventType, extraParameters) {
 
+  var self = this;
+
   // Default value for extraParameters
   if (typeof extraParameters == 'undefined') {
     extraParameters = [];
   }
 
-  this.$element.trigger(eventType, extraParameters);
+  setTimeout(function() {
+    self.$element.trigger(eventType, extraParameters);
+  });
   
 };
 
