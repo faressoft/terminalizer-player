@@ -257,10 +257,6 @@
   overflow: hidden;
 }
 
-.terminalizer-player.loading .controller {
-  display: none;
-}
-
 .terminalizer-player .play,
 .terminalizer-player .pause {
   fill: #CACACA;
@@ -383,61 +379,6 @@
 }
 
 .terminalizer-player.started .cover,
-.terminalizer-player.loading .cover,
-.terminalizer-player.started .start,
-.terminalizer-player.loading .start {
+.terminalizer-player.started .start {
   display: none;
-}
-
-.terminalizer-player .loading {
-  display: none;
-  height: 64px;
-  left: 50%;
-  margin-left: -32px;
-  margin-top: -32px;
-  position: absolute;
-  top: 50%;
-  width: 64px;
-  z-index: 999;
-}
-
-.terminalizer-player.loading .loading {
-  display: inline-block;
-}
-
-.terminalizer-player .loading div {
-  animation: loading 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-  border-radius: 50%;
-  border: 6px solid white;
-  box-sizing: border-box;
-  display: block;
-  height: 51px;
-  margin: 6px;
-  position: absolute;
-  width: 51px;
-}
-
-.terminalizer-player .loading div {
-  border-color: white transparent transparent transparent;
-}
-
-.terminalizer-player .loading div:nth-child(1) {
-  animation-delay: -0.45s;
-}
-
-.terminalizer-player .loading div:nth-child(2) {
-  animation-delay: -0.3s;
-}
-
-.terminalizer-player .loading div:nth-child(3) {
-  animation-delay: -0.15s;
-}
-
-@keyframes loading {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }

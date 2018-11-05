@@ -31,28 +31,19 @@ export function Terminalizer(element, options) {
 
   /**
    * The frames
-   * in the format [{content, delay}, ...]
-   * @type {Object}
-   */
-  self._frames = null;
-
-  /**
-   * Terminal buffer snapshots (cached frames)
    * in the format [
    *   {
-   *     lines,
-   *     cursorX,
-   *     cursorY,
-   *     cursorHidden,
-   *     startTime,
-   *     endTime,
+   *     content,
+   *     delay,
    *     duration,
-   *     delay
-   *   }, 
-   * ..]
+   *     startTime,
+   *     endTime
+   *   },
+   *   ..
+   * ]
    * @type {Array}
    */
-  self._snapshots = [];
+  self._frames = null;
 
   /**
    * The summation of the adjusted frames delays
@@ -91,7 +82,7 @@ export function Terminalizer(element, options) {
   self._isStarted = false;
 
   /**
-   * Is blocked for the rendering
+   * Is blocked for the rendering via a timer's tick or jumping
    * @type {Boolean}
    */
   self._isRendering = false;
@@ -101,12 +92,6 @@ export function Terminalizer(element, options) {
    * @type {Number}
    */
   self._lastRenderedFrame = -1;
-
-  /**
-   * A backup for the setTimeout native function
-   * @type {Function}
-   */
-  self._setTimeoutBackup = setTimeout;
 
   /**
    * HTML template for the start SVG icon
@@ -128,7 +113,6 @@ export function Terminalizer(element, options) {
   self._playerTemplate = '<div class="terminalizer-player">' +
     '<div class="cover"></div>' +
     '<div class="start">' + self._startTemplate + '</div>' +
-    '<div class="loading"><div></div><div></div><div></div><div></div></div>' +
     '<div class="terminalizer"></div>' +
     '<div class="controller">' +
     '<div class="play"><span class="icon"></span></div>' +
@@ -174,16 +158,30 @@ export function Terminalizer(element, options) {
   self._init().then(function(result) {
   
     // Initialize the controller
-    return self._initController();
-  
-  }).then(function() {
+    self._initController();
 
+    // A Wrapper around the refresh event of the Terminal
+    self._initRenderedEmitter();
+  
     // Emit the event on the Terminalizer element
     self._emit('init');
 
+    // Adjust the delays of the frames, considering to the options
+    self._adjustDelays();
+
+    // Calculate and set the duration, startTime, and endTime for each frame
+    self._calculateTiming();
+
+    // Sum the adjusted frames delays
+    self._totalDuration = self._calculateTotalDuration();
+
+    // Start the playing timer
+    self._lastTickTime = Date.now();
+    self._timer = setInterval(self._tick.bind(self), 1);
+
     // Autoplay is enabled
     if (self._options.autoplay) {
-      self.play();
+      return self.play();
     }
 
   }).catch(function(error) {
@@ -319,7 +317,7 @@ Terminalizer.prototype._initController = function() {
 
   /**
    * A callback function for the event:
-   * When click the progressbar is clicked
+   * When the progressbar is clicked
    * 
    * @param {Object} event
    */
@@ -341,7 +339,7 @@ Terminalizer.prototype._initController = function() {
   
   /**
    * A callback function for the event:
-   * When click the play button is clicked
+   * When the start button is clicked
    * 
    * @param {Object} event
    */
@@ -354,7 +352,7 @@ Terminalizer.prototype._initController = function() {
   
   /**
    * A callback function for the event:
-   * When click the play button is clicked
+   * When the play button is clicked
    * 
    * @param {Object} event
    */
@@ -367,7 +365,7 @@ Terminalizer.prototype._initController = function() {
   
   /**
    * A callback function for the event:
-   * When click the pause button is clicked
+   * When the pause button is clicked
    * 
    * @param {Object} event
    */
@@ -381,64 +379,25 @@ Terminalizer.prototype._initController = function() {
 };
 
 /**
- * Initialize the player for the first playing
- *
- * - Resolve immediately if already started
- *
- * @return {Promise}
+ * Wrap the refresh event of the Terminal and emit a `rendered` event
+ * on the Terminalizer element when all the write operations are executed
  */
-Terminalizer.prototype._start = function() {
+Terminalizer.prototype._initRenderedEmitter = function() {
 
   var self = this;
 
-  // Already started
-  if (self._isStarted) {
-    return Promise.resolve();
-  }
+  self._terminal.on('refresh', function refreshHandler() {
 
-  // Pause rendering
-  self._terminal._core.renderer._isPaused = true;
+    // Not all write operations are executed yet
+    if (this._writeInProgress) {
+      return;
+    }
 
-  // Add loading class
-  self.$element.find('.terminalizer-player').addClass('loading');
+    // Emit the event on the Terminalizer element
+    self._emit('rendered');
 
-  // Hide the terminal
-  self.$element.find('.terminalizer-body').css('visibility', 'hidden');
-
-  // Adjust the delays of the frames, considering to the options
-  self._adjustDelays();
-
-  // Sum the adjusted frames delays
-  self._totalDuration = self._calculateTotalDuration();
-
-  // Cache the viewport
-  return self._generateSnapshots().then(function(result) {
-
-    // Unpause rendering
-    self._terminal._core.renderer._isPaused = false;
-  
-    // Show the terminal
-    self.$element.find('.terminalizer-body').css('visibility', 'visible');
-
-    // Add started class
-    self.$element.find('.terminalizer-player').addClass('started');
-
-    // Start the playing timer
-    self._lastTickTime = Date.now();
-    self._timer = setInterval(self._tick.bind(self), 1);
-
-    // Set the _isStarted flag
-    self._isStarted = true;
-
-    // Remove loading class
-    self.$element.find('.terminalizer-player').removeClass('loading');
-  
-  }).catch(function(error) {
-  
-    console.log(error);      
-    
   });
-
+  
 };
 
 /**
@@ -487,6 +446,34 @@ Terminalizer.prototype._adjustDelays = function() {
 };
 
 /**
+ * Calculate and set the duration, startTime, and endTime for each frame
+ */
+Terminalizer.prototype._calculateTiming = function() {
+
+  var currentTime = 0;
+  var framesCount = this._frames.length;
+  var frames = this._frames;
+
+  // Foreach frame
+  frames.forEach(function(frame, index) {
+
+    // Set the duration (the delay of the next frame)
+    // The % is used to take the delay of the first frame
+    // as the duration of the last frame
+    var duration = frames[(index + 1) % framesCount].delay;
+
+    // Set timing values for the current frame
+    frame.duration = duration;
+    frame.startTime = currentTime;
+    frame.endTime = currentTime + duration;
+
+    currentTime = currentTime + duration;
+    
+  });
+
+};
+
+/**
  * Sum the adjusted frames delays
  * 
  * @return {Number}
@@ -502,93 +489,6 @@ Terminalizer.prototype._calculateTotalDuration = function() {
 };
 
 /**
- * Play the frames ang take snapshots for the terminal buffer
- * for each frame and calculate `startTime`, `endTime`, `duration` and `delay`
- *
- * @return {Promise}
- */
-Terminalizer.prototype._generateSnapshots = function() {
-
-  var self = this;
-  var tasks = [];
-  var currentTime = 0;
-  var chunkSize = 200;
-  var chunkDelay = 2;
-  var framesCount = self.getFramesCount();
-  var frames = self._frames;
-
-  // A workaround for sync rendering with xterm
-  self._syncSetTimeout();
-
-  // Reset the terminal
-  self._terminal.reset();
-
-  // Foreach frame
-  frames.forEach(function(frame, index) {
-
-    var delay = 0;
-
-    if (index > 0 && index % chunkSize == 0) {
-      delay = chunkDelay;
-    }
-
-    tasks.push(function(callback) {
-
-      setTimeout(function() {
-
-        // Set the duration (the delay of the next frame)
-        // The % is used to take the delay of the first frame
-        // as the duration of the last frame
-        var duration = frames[(index + 1) % framesCount].delay;
-
-        // Render the frame
-        self._terminal.write(frame.content);
-
-        // Take a snapshot
-        self._snapshots.push({
-          lines: $.extend(true, {}, self._terminal._core.buffer.lines),
-          cursorX: self._terminal._core.buffer.x,
-          cursorY: self._terminal._core.buffer.y,
-          cursorHidden: self._terminal._core.cursorHidden,
-          startTime: currentTime,
-          endTime: currentTime + duration,
-          duration: duration,
-          delay: frame.delay
-        });
-
-        currentTime = currentTime + duration;
-        
-        callback();
-
-      }, delay);
-      
-    });
-
-  });
-
-  return new Promise(function(resolve, reject) {
-
-    setTimeout(function() {
-      
-      self._series(tasks, function(error, result) {
-
-        // Reset the overriden setTimeout to the native one
-        self._resetSetTimeout();
-
-        // Reset the terminal
-        self._terminal.reset();
-
-        resolve();
-        
-      });
-
-    }, 10);
-
-  });
-
-};
-
-/**
  * Get the frame's index at a specific time
  * 
  * @param  {Number} time
@@ -597,27 +497,27 @@ Terminalizer.prototype._generateSnapshots = function() {
  */
 Terminalizer.prototype._findFrameAt = function(time, fromIndex) {
 
-  var snapshot = null;
+  var frame = null;
 
   // Default value for fromIndex
   if (typeof fromIndex == 'undefined') {
     fromIndex = 0;
   }
 
-  // Foreach snapshot
-  for (var i = fromIndex; i < this._snapshots.length; i++) {
+  // Foreach frame
+  for (var i = fromIndex; i < this._frames.length; i++) {
 
-    snapshot = this._snapshots[i];
+    frame = this._frames[i];
 
-    if (snapshot.startTime <= time && time < snapshot.endTime) {
+    if (frame.startTime <= time && time < frame.endTime) {
       return i;
     }
 
   }
 
   // The endTime of the final frame belongs to it
-  if (snapshot.startTime <= time && time <= snapshot.endTime) {
-    return this._snapshots.length - 1;
+  if (frame.startTime <= time && time <= frame.endTime) {
+    return this._frames.length - 1;
   }
 
   return -1;
@@ -633,13 +533,13 @@ Terminalizer.prototype._findFrameAt = function(time, fromIndex) {
  */
 Terminalizer.prototype._isFrameAt = function(time, frameIndex) {
 
-  var snapshot = this._snapshots[frameIndex];
+  var frame = this._frames[frameIndex];
 
-  if (typeof snapshot == 'undefined') {
+  if (typeof frame == 'undefined') {
     return false;
   }
 
-  if (snapshot.startTime <= time && time < snapshot.endTime) {
+  if (frame.startTime <= time && time < frame.endTime) {
     return true;
   }
 
@@ -703,20 +603,23 @@ Terminalizer.prototype._applySnapshot = function(snapshot, cursorHidden) {
 /**
  * Render a frame
  *
- * - Render the corresponding snapshot
- * 
+ * Flow:
+ * - Wait for the _options.beforeMiddleware
+ * - Render the frame and wait for the rendring
+ * - Wait for the _options.afterMiddleware
+ *
  * @param {Number}   frameIndex
+ * @param {Boolean}  skipMiddlewares
  * @param {Function} callback
  */
-Terminalizer.prototype._renderFrame = function(frameIndex, callback) {
+Terminalizer.prototype._renderFrame = function(frameIndex, skipMiddlewares, callback) {
 
   var self = this;
   var tasks = [];
-  var snapshot = self._snapshots[frameIndex];
   var frame = self._frames[frameIndex];
 
   // If beforeMiddleware is set
-  if (self._options.beforeMiddleware) {
+  if (self._options.beforeMiddleware && !skipMiddlewares) {
 
     tasks.push(function(callback) {
       self._options.beforeMiddleware.call(self, frame, frameIndex, callback.bind(null, null, null));
@@ -727,13 +630,27 @@ Terminalizer.prototype._renderFrame = function(frameIndex, callback) {
   // Rendering
   tasks.push(function(callback) {
 
-    self._applySnapshot(snapshot);
-    callback();
+    // Render the frame
+    self._terminal.write(frame.content);
+
+    /**
+     * A callback function for the event:
+     * When the write operation is executed and
+     * the changes are rendered
+     */
+    self.$element.one('rendered', function() {
+
+      // An extra tick to allow the browser to complete canvas painting
+      setTimeout(function() {
+        callback(); 
+      });
+      
+    });
 
   });
 
   // If afterMiddleware is set
-  if (self._options.afterMiddleware) {
+  if (self._options.afterMiddleware && !skipMiddlewares) {
 
     tasks.push(function(callback) {
       self._options.afterMiddleware.call(self, frame, frameIndex, callback.bind(null, null, null));
@@ -768,7 +685,7 @@ Terminalizer.prototype._loadJSON = function(url) {
 };
 
 /**
- * The timer's callback
+ * The playing timer's callback
  */
 Terminalizer.prototype._tick = function() {
 
@@ -783,7 +700,7 @@ Terminalizer.prototype._tick = function() {
     return;
   }
 
-  // Stil rendering the last frame
+  // Still rendering the last frame
   if (self._isRendering) {
     return;
   }
@@ -803,7 +720,7 @@ Terminalizer.prototype._tick = function() {
   }
 
   // Reached the end
-  if (self._lastRenderedFrame == self.getFramesCount() - 1 &&
+  if (self._lastRenderedFrame == self._frames.length - 1 &&
       self._currentTime == self._totalDuration) {
 
     // Emit the event on the Terminalizer element
@@ -830,7 +747,7 @@ Terminalizer.prototype._tick = function() {
   self._isRendering = true;
 
   // Render the frame
-  self._renderFrame(self._lastRenderedFrame, function() {
+  self._renderFrame(self._lastRenderedFrame, false, function() {
 
     // To discard the time spent rendering
     self._lastTickTime = Date.now();
@@ -843,14 +760,11 @@ Terminalizer.prototype._tick = function() {
 };
 
 /**
- * Update the player
- *
- * - Update the time
- * - Update the progressbar
+ * Update the player (time and progressbar)
  */
 Terminalizer.prototype._updatePlayer = function() {
 
-  var progress = parseInt(this._currentTime / this._totalDuration * 100);
+  var progress = this._currentTime / this._totalDuration * 100;
   var time = this._formatTime(this._currentTime);
 
   this.$element.find('.terminalizer-player .progress').width(progress + '%');
@@ -937,43 +851,6 @@ Terminalizer.prototype._series = function(tasks, callback) {
 };
 
 /**
- * Override setTimeout to make it sync when the `delay` is `0`
- * A workaround for sync rendering with xterm
- */
-Terminalizer.prototype._syncSetTimeout = function() {
-
-  var self = this;
-
-  setTimeout = function() {
-
-    var callback = arguments[0];
-    var delay = 0;
-    var args = Array.prototype.slice.call(arguments, 2);
-
-    if (typeof arguments[1] != 'undefined') {
-      delay = arguments[1];
-    }
-
-    if (delay <= 1) {
-      return callback.apply(this, args);
-    }
-
-    self._setTimeoutBackup.bind(this, callback, delay).apply(null, args);
-    
-  };
-
-};
-
-/**
- * Reset the overriden setTimeout to the native one
- */
-Terminalizer.prototype._resetSetTimeout = function() {
-
-  setTimeout = this._setTimeoutBackup;
-
-};
-
-/**
  * Get the number of frames
  * 
  * @return {Number}
@@ -985,7 +862,7 @@ Terminalizer.prototype.getFramesCount = function() {
 };
 
 /**
- * Resume playing the frames
+ * Start/resume playing the frames
  *
  * @return {Promise}
  */
@@ -993,24 +870,46 @@ Terminalizer.prototype.play = function() {
 
   var self = this;
 
-  return self._start().then(function(result) {
+  return new Promise(function(resolve, reject) {
 
-    // Reached the end
-    if (self._lastRenderedFrame == self.getFramesCount() - 1 &&
-        self._currentTime == self._totalDuration) {
+    // Reached the end or not started yet
+    if ((self._lastRenderedFrame == self.getFramesCount() - 1 &&
+         self._currentTime == self._totalDuration) || !self._isStarted) {
 
       self._currentTime = 0;
 
+      // Set the _isStarted flag
+      self._isStarted = true;
+
+      // Reset the terminal
+      self._terminal.reset();
+
+      /**
+       * A callback function for the event:
+       * When the write operation is executed and
+       * the changes are rendered
+       */
+      return self.$element.one('rendered', function() {
+        resolve();
+      });
+
     }
-  
+
+    resolve();
+
+  }).then(function() {
+
+    // Add started class
+    self.$element.find('.terminalizer-player').addClass('started');
+
     // Set the _isPlaying flag
     self._isPlaying = true;
 
-    // Add playing class
-    self.$element.find('.terminalizer-player').addClass('playing');
-
     // Emit the event on the Terminalizer element
     self._emit('playingStarted');
+  
+    // Add playing class
+    self.$element.find('.terminalizer-player').addClass('playing');
   
   });
 
@@ -1035,17 +934,60 @@ Terminalizer.prototype.pause = function() {
 /**
  * Change the current time of the player
  *
- * - Don't do anything if the player is not playing
- *
  * @param {Number} time
  */
 Terminalizer.prototype.jump = function(time) {
 
-  // Not playing
-  if (!this._isPlaying) {
-    return;
-  }
+  var self = this;
+  var tasks = [];
 
-  this._currentTime = time;
+  // The frame to jump to
+  var frameIndex = null;
+
+  // Is currently playing
+  var isPlaying = self._isPlaying;
+
+  // The start point of the rendering cycle
+  self._isRendering = true;
+  self._isPlaying = false;
+
+  // Set the current time to the time of the frame
+  self._currentTime = time;
+
+  // Update the player (time and progressbar)
+  self._updatePlayer();
+
+  /**
+   * A callback function for the event:
+   * When the write operation is executed and
+   * the changes are rendered
+   */
+  self.$element.one('rendered', function() {
+
+    // Get the frame's index
+    frameIndex = self._findFrameAt(time);
+
+    // Foreach frame <= the frame to jump too
+    for (var i = 0; i <= frameIndex; i++) {
+      self._terminal.write(self._frames[i].content);
+    }
+
+    /**
+     * A callback function for the event:
+     * When the write operation is executed and
+     * the changes are rendered
+     */
+    self.$element.one('rendered', function() {
+
+      // The end point of the rendering cycle
+      self._isRendering = false;
+      self._isPlaying = isPlaying;
+
+    });
+
+  });
+
+  // Reset the terminal
+  self._terminal.reset();
   
 };
