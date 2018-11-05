@@ -31,6 +31,7 @@ import {Terminalizer} from './terminalizer.js';
  * - playingCompleted
  * - playingStarted
  * - playingPaused
+ * - rendered
  */
 $.fn.terminalizer = function() {
 
