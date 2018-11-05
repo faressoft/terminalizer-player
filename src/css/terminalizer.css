@@ -382,3 +382,7 @@
 .terminalizer-player.started .start {
   display: none;
 }
+
+.terminalizer-player .terminalizer-watermark {
+  z-index: 99999;
+}
