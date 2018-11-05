@@ -58,6 +58,12 @@ export function Terminalizer(element, options) {
   self._currentTime = 0;
 
   /**
+   * The time of the thumbnail frame
+   * @type {Number}
+   */
+  self._thumbnailTime = 0;
+
+  /**
    * The playing timer
    * @type {Object}
    */
@@ -157,28 +163,6 @@ export function Terminalizer(element, options) {
   // Initialize Terminalizer
   self._init().then(function(result) {
   
-    // Initialize the controller
-    self._initController();
-
-    // A Wrapper around the refresh event of the Terminal
-    self._initRenderedEmitter();
-  
-    // Emit the event on the Terminalizer element
-    self._emit('init');
-
-    // Adjust the delays of the frames, considering to the options
-    self._adjustDelays();
-
-    // Calculate and set the duration, startTime, and endTime for each frame
-    self._calculateTiming();
-
-    // Sum the adjusted frames delays
-    self._totalDuration = self._calculateTotalDuration();
-
-    // Start the playing timer
-    self._lastTickTime = Date.now();
-    self._timer = setInterval(self._tick.bind(self), 1);
-
     // Autoplay is enabled
     if (self._options.autoplay) {
       return self.play();
@@ -213,6 +197,11 @@ Terminalizer.prototype._init = function() {
 
     // Marge the plugin's options with recording file's configs
     self._options = $.extend(result.config, self._options);
+
+    // Has a thumbnail
+    if (typeof result.thumbnailTime != 'undefined') {
+      self._thumbnailTime = result.thumbnailTime;
+    }
 
     // If the controls is enabled
     if (self._options.controls) {
@@ -292,18 +281,47 @@ Terminalizer.prototype._init = function() {
       }
     });
 
-    // Show the thumbnail
-    if (typeof result.thumbnail != 'undefined') {
-      self._applySnapshot(result.thumbnail, true);
-    }
+    // Initialize the controller
+    self._initController();
+
+    // A Wrapper around the refresh event of the Terminal
+    self._initRenderedEmitter();
+  
+    // Emit the event on the Terminalizer element
+    self._emit('init');
+
+    // Adjust the delays of the frames, considering to the options
+    self._adjustDelays();
+
+    // Calculate and set the duration, startTime, and endTime for each frame
+    self._calculateTiming();
+
+    // Sum the adjusted frames delays
+    self._totalDuration = self._calculateTotalDuration();
+
+    // Start the playing timer
+    self._lastTickTime = Date.now();
+    self._timer = setInterval(self._tick.bind(self), 1);
 
     // Add a watermark
     if (self._options.watermark.imagePath) {
       return self._addWatermark(self._options.watermark);
     }
 
-  });
+  }).then(function() {
   
+    return self.jump(self._thumbnailTime, false);
+  
+  }).then(function() {
+  
+    // Set the current time to the time of the frame
+    self._currentTime = 0;
+
+    // Update the player (time and progressbar)
+    self._updatePlayer();
+  
+  });
+
 };
 
 /**
@@ -569,35 +587,6 @@ Terminalizer.prototype._addWatermark = function(watermarkConfig) {
     
   });
 
-};
-
-/**
- * Update the terminal buffer using the a snapshot
- *
- * - Set lines
- * - Set x of the cursor
- * - Set y of the cursor
- * - Set cursorState to 1
- * - Set cursorHidden
- * - Refresh the terminal
- * 
- * @param {Object}  snapshot     {lines, cursorX, cursorY, cursorHidden}
- * @param {Boolean} cursorHidden override the snapshot's value of cursorHidden (Optional)
- */
-Terminalizer.prototype._applySnapshot = function(snapshot, cursorHidden) {
-
-  // Default value for cursorHidden 
-  if (typeof cursorHidden == 'undefined') {
-    cursorHidden = snapshot.cursorHidden;
-  }
-
-  this._terminal._core.buffer.lines = Object.assign(this._terminal._core.buffer.lines, snapshot.lines);
-  this._terminal._core.buffer.x = snapshot.cursorX;
-  this._terminal._core.buffer.y = snapshot.cursorY;
-  this._terminal._core.cursorState = 1;
-  this._terminal._core.cursorHidden = cursorHidden;
-  this._terminal.refresh();
-  
 };
 
 /**
@@ -934,9 +923,14 @@ Terminalizer.prototype.pause = function() {
 /**
  * Change the current time of the player
  *
- * @param {Number} time
+ * @param  {Number}  time
+ * @param  {Boolean} updatePlayer if false, just render the frame
+ *                                without setting `_currentTime` and
+ *                                without calling `updatePlayer()`
+ *                                (Optional) (Default: true)
+ * @return {Promise}
  */
-Terminalizer.prototype.jump = function(time) {
+Terminalizer.prototype.jump = function(time, updatePlayer) {
 
   var self = this;
   var tasks = [];
@@ -947,30 +941,26 @@ Terminalizer.prototype.jump = function(time) {
   // Is currently playing
   var isPlaying = self._isPlaying;
 
+  // Default value for updatePlayer
+  if (typeof updatePlayer == 'undefined') {
+    updatePlayer = true;
+  }
+
   // The start point of the rendering cycle
   self._isRendering = true;
   self._isPlaying = false;
 
-  // Set the current time to the time of the frame
-  self._currentTime = time;
+  if (updatePlayer) {
 
-  // Update the player (time and progressbar)
-  self._updatePlayer();
+    // Set the current time to the time of the frame
+    self._currentTime = time;
 
-  /**
-   * A callback function for the event:
-   * When the write operation is executed and
-   * the changes are rendered
-   */
-  self.$element.one('rendered', function() {
+    // Update the player (time and progressbar)
+    self._updatePlayer();
+    
+  }
 
-    // Get the frame's index
-    frameIndex = self._findFrameAt(time);
-
-    // Foreach frame <= the frame to jump too
-    for (var i = 0; i <= frameIndex; i++) {
-      self._terminal.write(self._frames[i].content);
-    }
+  return new Promise(function(resolve, reject) {
 
     /**
      * A callback function for the event:
@@ -979,15 +969,34 @@ Terminalizer.prototype.jump = function(time) {
      */
     self.$element.one('rendered', function() {
 
-      // The end point of the rendering cycle
-      self._isRendering = false;
-      self._isPlaying = isPlaying;
+      // Get the frame's index
+      frameIndex = self._findFrameAt(time);
+
+      // Foreach frame <= the frame to jump too
+      for (var i = 0; i <= frameIndex; i++) {
+        self._terminal.write(self._frames[i].content);
+      }
+
+      /**
+       * A callback function for the event:
+       * When the write operation is executed and
+       * the changes are rendered
+       */
+      self.$element.one('rendered', function() {
+
+        // The end point of the rendering cycle
+        self._isRendering = false;
+        self._isPlaying = isPlaying;
+
+        resolve();
+
+      });
 
     });
 
-  });
+    // Reset the terminal
+    self._terminal.reset();
 
-  // Reset the terminal
-  self._terminal.reset();
+  });
   
 };
