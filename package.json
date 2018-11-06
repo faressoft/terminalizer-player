@@ -1,6 +1,6 @@
 {
   "name": "terminalizer-player",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A web player for Terminalizer's recordings",
   "main": "dist/js/terminalizer.js",
   "author": "Mohammad Fares <faressoft.com@gmail.com>",
