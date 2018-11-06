@@ -58,12 +58,6 @@ export function Terminalizer(element, options) {
   self._currentTime = 0;
 
   /**
-   * The time of the thumbnail frame
-   * @type {Number}
-   */
-  self._thumbnailTime = 0;
-
-  /**
    * The playing timer
    * @type {Object}
    */
@@ -157,7 +151,8 @@ export function Terminalizer(element, options) {
     afterMiddleware: null,
     controls: true,
     repeat: false,
-    autoplay: false
+    autoplay: false,
+    thumbnailTime: 0
   }, options);
 
   // Initialize Terminalizer
@@ -197,11 +192,6 @@ Terminalizer.prototype._init = function() {
 
     // Marge the plugin's options with recording file's configs
     self._options = $.extend(result.config, self._options);
-
-    // Has a thumbnail
-    if (typeof result.thumbnailTime != 'undefined') {
-      self._thumbnailTime = result.thumbnailTime;
-    }
 
     // If the controls is enabled
     if (self._options.controls) {
@@ -310,7 +300,7 @@ Terminalizer.prototype._init = function() {
 
   }).then(function() {
   
-    return self.jump(self._thumbnailTime, false);
+    return self.jump(self._options.thumbnailTime, false);
   
   }).then(function() {
   
