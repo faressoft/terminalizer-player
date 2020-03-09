@@ -152,6 +152,7 @@ export function Terminalizer(element, options) {
     controls: true,
     repeat: false,
     autoplay: false,
+    autofocus: true,
     thumbnailTime: 0
   }, options);
 
@@ -270,6 +271,10 @@ Terminalizer.prototype._init = function() {
         return true;
       }
     });
+
+    if (self._options.autofocus) {
+      self._terminal.focus();
+    }
 
     // Initialize the controller
     self._initController();
