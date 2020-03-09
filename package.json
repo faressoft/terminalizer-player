@@ -50,7 +50,7 @@
     "uglifyjs-webpack-plugin": "^2.0.1",
     "webpack": "^4.20.2",
     "webpack-cli": "^3.1.2",
-    "xterm": "3.5.1",
+    "xterm": "3.8.1",
     "autoprefixer": "^9.1.5",
     "css-loader": "^1.0.0",
     "postcss-loader": "^3.0.0"
